@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Jesus</title>
+    <!-- importacao do brython -->
+    <script type='text/javascript' src="{% static 'js/brython.min.js' %}"></script>
+    <script type='text/javascript' src="{% static 'js/brython_stdlib.js' %}"></script>
+    <!-- fim importacao do brython -->
+
+    <!-- inicio script brython -->
+    <script type="text/python">
+        from browser import bind, alert, html, document, ajax
+        from json import loads
+
+        clicks = 0
+        alert('SUBINDO BRYTHON')
+
+        # PARA O BOTAO
+        @bind("input[name='button']", 'click')
+        def click_btn(e): 
+            # import pdb; pdb.set_trace()
+            global clicks
+            document <= html.P(f'Jesus fui clicado {clicks}')
+            clicks += 1
+
+        @bind('input', 'mouseover')
+        def mouseover(e): 
+            global clicks
+            print('MOUSE PASSANDO')
+            document.getElementById('zone').text = f'Jesus voltando {clicks}'
+            document.title = f'Jesus voltando {clicks}'
+            clicks += 1
+
+        @bind("input[name='nome']", 'input')
+        def esperar_enter(e): 
+            print(f'FUI PRESSIONADO {e}')
+            document.getElementById('span').text = e.currentTarget.value
+
+        ' INCLUI UMA NOVA TAG P AO PRESSIONAR ENTER NA DATA '            
+        @bind("input[name='data']", 'keypress')
+        def data(e):
+            if(e.charCode == 13):
+                document <= html.P(e.currentTarget.value)
+                e.currentTarget.value = ''
+        
+        def requisitar(e): 
+            endereco =  loads(e.read())['dados']
+            document.getElementById('cidade').value = endereco['cidade']
+            document.getElementById('estado').value = endereco['estado']
+            document.getElementById('bairro').value = endereco['bairro']
+            document.getElementById('rua').value = endereco['rua']
+            document.getElementById('ceps').value = endereco['cep']
+
+        @bind("input[name='ajaxme']", 'click')
+        def ajaxme(e):
+            print('OI')
+            ajax.post('/ajaxme', oncomplete=requisitar, 
+                      data={'csrfmiddlewaretoken': '{{ csrf_token }}', 
+                      'cep': document.getElementById('cep').value})
+
+    </script>
+    <!-- fim inicio script brython -->
+</head>
+
+<body onload="brython()">
+    <form action="" method="POST">
+        {% csrf_token %}
+        <fieldset>
+            <h2 id='zone'>Jesus</h2>
+            <input type="button" name="button" id="button" value='me clica' /><br/>
+            <input type='text' name='nome' id='nome' placeholder='DIGITE SEU NOME' /><br/>
+            <input type='text' name='data' id='data' placeholder='SUA DATA DE NASCIMENTO' /><br/>
+            <span id='span'></span>
+        </fieldset>
+    </form>
+
+    <fieldset>
+        <h2>PREENCHER CEP</h2>
+        <input type='text' name='cep' id='cep' placeholder='DIGITE O CEP' /><br/>
+        <input type='button' name='ajaxme' value='ajaxme'><br/>
+        <input type='text' id='rua'><br/>
+        <input type='text' id='cidade'><br/>
+        <input type='text' id='bairro'><br/>
+        <input type='text' id='estado'><br/>
+        <input type='text' id='ceps'><br/>
+    </fieldset>
+
+</body>
+
+</html>
